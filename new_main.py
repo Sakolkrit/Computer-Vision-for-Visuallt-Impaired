@@ -1,5 +1,6 @@
 import cv2
 import pyttsx3
+from playsound import playsound
 import numpy as np
 
 engine = pyttsx3.init()
@@ -137,28 +138,53 @@ while True:
                 if notif_count == 0:
                     if (i+w) in range(0,640): #left-half region
                         print('Move right')
+                        playsound('Move_right.mp3')
                         notif_count += 1
-                        engine.say('Move right')
+                        #engine.say('Move right')
                     elif (i+w) in range(641,1280): #right-half region
                         print('Move left')
+                        playsound('Move_left.mp3')
                         notif_count += 1
-                        engine.say('Move left')
+                        #engine.say('Move left')
                 elif notif_count > 0:
                     print('Safe')
-                    engine.say('Safe')
+                    playsound('Safe.mp3')
+                    #engine.say('Safe')
                     print(box)
                     notif_count = 0
                     print(i+w)
-                    engine.runAndWait()
+                #engine.runAndWait()
 
         elif d[0] == 'person':
             distance = distance_finder(focal_person, PERSON_WIDTH, d[1])
             x, y = d[2]
-
+            if distance < 20:
+                if notif_count == 0:
+                    if (i+w) in range(0,640): #left-half region
+                        print('Move right')
+                        playsound('Move_right.mp3')
+                        notif_count += 1
+                        #engine.say('Move right')
+                        #blind_speak('Move right')
+                    elif (i+w) in range(641,1280): #right-half region
+                        print('Move left')
+                        playsound('Move_left.mp3')
+                        notif_count += 1
+                        #engine.say('Move left')
+                        #blind_speak('Move left')
+                elif notif_count > 0:
+                    print('Safe')
+                    playsound('Safe.mp3')
+                    #engine.say('Safe')
+                    #blind_speak('Safe')
+                    print(box)
+                    notif_count = 0
+                    print(i+w)
+        #engine.runAndWait()
 
         cv2.rectangle(frame, (x, y - 3), (x + 150, y + 23), BLACK, -1)
         cv2.putText(frame, f'Dis: {round(distance, 2)} inch', (x + 5, y + 13), FONTS, 0.48, GREEN, 2)
-
+    #engine.runAndWait()
 
     cv2.imshow('frame', frame)
     key = cv2.waitKey(1)
