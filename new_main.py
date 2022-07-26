@@ -57,9 +57,8 @@ def object_detector(image):
         # define color of each, object based on its class id
         color = COLORS[int(classid) % len(COLORS)]
 
-        #label = "%s : %f" % (class_names[classid[0]], score)
-        label = "person"
-
+        label = "%s : %f" % (class_names[classid - 1], score)
+        #label = "person"
 
         # draw rectangle on and label on object
         cv2.rectangle(image, box, color, 2)
@@ -76,9 +75,9 @@ def object_detector(image):
 
             #data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
             data_list.append(["person", box[2], (box[0], box[1] - 2)])
-        #elif classid == 68:
+        elif classid == 77:
             #data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
-            #data_list.append(["window", box[2], (box[0], box[1] - 2)])
+            data_list.append(["cell phone", box[2], (box[0], box[1] - 2)])
         # if you want include more classes then you have to simply add more [elif] statements here
         # returning list containing the object data.
     return data_list
@@ -103,14 +102,15 @@ def distance_finder(focal_length, real_object_width, width_in_frmae):
 ref_person = cv2.imread('image14.png')
 ref_mobile = cv2.imread('image4.png')
 
-mobile_data = object_detector(ref_mobile)
-mobile_width_in_rf = mobile_data[0][1]
 
 person_data = object_detector(ref_person)
-person_width_in_rf = person_data[0][1]
+person_width_in_rf = person_data[0][1] #first position 'if', box[2]
 
-#print(f"Person width in pixels : {person_width_in_rf} mobile width in pixel: {mobile_width_in_rf}")
-print(f"Person width in pixels : {person_width_in_rf}")
+mobile_data = object_detector(ref_mobile)
+mobile_width_in_rf = mobile_data[1][1] #second position 'elif', box[2]
+
+print(f"Person width in pixels : {person_width_in_rf} mobile width in pixel: {mobile_width_in_rf}")
+#print(f"Person width in pixels : {person_width_in_rf}")
 
 
 # finding focal length
@@ -127,42 +127,40 @@ notif_count = 0
 
 while True:
     ret, frame = cap.read()
-
     data = object_detector(frame)
     for d in data:
-        if d[0] == 'person':
-            distance = distance_finder(focal_person, PERSON_WIDTH, d[1])
+        if d[0] == 'cell phone':
+            distance = distance_finder(focal_mobile, MOBILE_WIDTH, d[1])
             x, y = d[2] #position where to draw text, dist
-            #bottom right: 444, 386
-            #bottom left: 0, 340
             #img capped from webcam dimensions: (720, 1280, 3)
             if distance < 20:
                 if notif_count == 0:
                     if (i+w) in range(0,640): #left-half region
                         print('Move right')
                         notif_count += 1
+                        engine.say('Move right')
                     elif (i+w) in range(641,1280): #right-half region
                         print('Move left')
                         notif_count += 1
+                        engine.say('Move left')
                 elif notif_count > 0:
                     print('Safe')
-                    #blind_speak('Left')
+                    engine.say('Safe')
                     print(box)
                     notif_count = 0
                     print(i+w)
+                    engine.runAndWait()
 
-        #elif d[0] == 'cell phone':
-            #distance = distance_finder(focal_mobile, MOBILE_WIDTH, d[1])
-            #x, y = d[2]
+
         cv2.rectangle(frame, (x, y - 3), (x + 150, y + 23), BLACK, -1)
         cv2.putText(frame, f'Dis: {round(distance, 2)} inch', (x + 5, y + 13), FONTS, 0.48, GREEN, 2)
 
 
     cv2.imshow('frame', frame)
-
     key = cv2.waitKey(1)
     if key == ord('q'):
         break
+
 cv2.destroyAllWindows()
 cap.release()
 
