@@ -1,6 +1,7 @@
 import cv2
 import pyttsx3
 from playsound import playsound
+import time
 import numpy as np
 
 engine = pyttsx3.init()
@@ -139,11 +140,14 @@ while True:
                     if (i+w) in range(0,640): #left-half region
                         print('Move right')
                         playsound('Move_right.mp3')
+                        time.sleep(3)  # delay for 3 secs
                         notif_count += 1
+
                         #engine.say('Move right')
                     elif (i+w) in range(641,1280): #right-half region
                         print('Move left')
                         playsound('Move_left.mp3')
+                        time.sleep(3)  # delay for 3 secs
                         notif_count += 1
                         #engine.say('Move left')
                 elif notif_count > 0:
@@ -163,23 +167,26 @@ while True:
                     if (i+w) in range(0,640): #left-half region
                         print('Move right')
                         playsound('Move_right.mp3')
+                        time.sleep(3)  # delay for 3 secs
                         notif_count += 1
                         #engine.say('Move right')
                         #blind_speak('Move right')
                     elif (i+w) in range(641,1280): #right-half region
                         print('Move left')
                         playsound('Move_left.mp3')
+                        time.sleep(3)  # delay for 3 secs
                         notif_count += 1
                         #engine.say('Move left')
                         #blind_speak('Move left')
                 elif notif_count > 0:
                     print('Safe')
                     playsound('Safe.mp3')
+                    time.sleep(3)  # delay for 3 secs
                     #engine.say('Safe')
                     #blind_speak('Safe')
                     print(box)
                     notif_count = 0
-                    print(i+w)
+            print(i+w)
         #engine.runAndWait()
 
         cv2.rectangle(frame, (x, y - 3), (x + 150, y + 23), BLACK, -1)
