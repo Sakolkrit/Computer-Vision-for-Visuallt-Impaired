@@ -4,16 +4,19 @@ from playsound import playsound
 import time
 import numpy as np
 
-engine = pyttsx3.init()
+#engine = pyttsx3.init()
 
-def blind_speak(command):
-    engine.say(command)
-    engine.runAndWait() #exits loop
+#def blind_speak(command):
+    #engine.say(command)
+    #engine.runAndWait() #exits loop
 
 # Distance constants
 KNOWN_DISTANCE = 45  # INCHES
 PERSON_WIDTH = 16  # INCHES
 MOBILE_WIDTH = 3.0  # INCHES
+
+KNOWN_DISTANCE_S = 5
+SIGN_WIDTH = 23.5
 
 # Object detector constant
 CONFIDENCE_THRESHOLD = 0.4
@@ -72,7 +75,7 @@ def object_detector(image):
 
         # getting the data
         # 1: class name  2: object width in pixels, 3: position where have to draw text(distance)
-        if classid == 1:  # person class id
+        if classid == 13:  # person class id
             # x, y, w, h = box[0], box[1], box[2], box[3]
 
             #data_list.append([class_names[classid[0]], box[2], (box[0], box[1] - 2)])
@@ -91,107 +94,99 @@ def focal_length_finder(measured_distance, real_width, width_in_rf):
     return focal_length
 
 
+
 # distance finder function
 def distance_finder(focal_length, real_object_width, width_in_frmae):
+    global distance
     distance = (real_object_width * focal_length) / width_in_frmae
     return distance
 
 
-#def position_finder()
+
+
 
 
 # reading the reference image from dir
 ref_person = cv2.imread('image14.png')
 ref_mobile = cv2.imread('image4.png')
+ref_sign = cv2.imread('stop_sign.jpeg')
 
 
-person_data = object_detector(ref_person)
-person_width_in_rf = person_data[0][1] #first position 'if', box[2]
+#person_data = object_detector(ref_person)
+#person_width_in_rf = person_data[0][1] #first position 'if', box[2]
 
 mobile_data = object_detector(ref_mobile)
 mobile_width_in_rf = mobile_data[1][1] #second position 'elif', box[2]
 
-print(f"Person width in pixels : {person_width_in_rf} mobile width in pixel: {mobile_width_in_rf}")
+sign_data = object_detector(ref_sign)
+sign_width_in_rf = sign_data[0][1] #first position 'if', box[2]
+
+
+
+
+#print(f"Person width in pixels : {person_width_in_rf} mobile width in pixel: {mobile_width_in_rf}")
 #print(f"Person width in pixels : {person_width_in_rf}")
 
 
 # finding focal length
-focal_person = focal_length_finder(KNOWN_DISTANCE, PERSON_WIDTH, person_width_in_rf)
+#focal_person = focal_length_finder(KNOWN_DISTANCE, PERSON_WIDTH, person_width_in_rf)
 
 focal_mobile = focal_length_finder(KNOWN_DISTANCE, MOBILE_WIDTH, mobile_width_in_rf)
 
+focal_sign = focal_length_finder(KNOWN_DISTANCE_S, SIGN_WIDTH, sign_width_in_rf)
 
+#tracker
+cap = cv2.VideoCapture(0)
 
 
 cap = cv2.VideoCapture(0)
 
-notif_count = 0
+
+#notif_count = 0
 
 while True:
     ret, frame = cap.read()
     data = object_detector(frame)
+
+
     for d in data:
         if d[0] == 'cell phone':
             distance = distance_finder(focal_mobile, MOBILE_WIDTH, d[1])
             x, y = d[2] #position where to draw text, dist
             #img capped from webcam dimensions: (720, 1280, 3)
             if distance < 20:
-                if notif_count == 0:
-                    if (i+w) in range(0,640): #left-half region
-                        print('Move right')
-                        playsound('Move_right.mp3')
-                        time.sleep(3)  # delay for 3 secs
-                        notif_count += 1
+                #if notif_count == 0:
+                if (i+w) in range(0,640): #left-half region
+                    print('Move right')
+                    playsound('Move_right.mp3')
 
-                        #engine.say('Move right')
-                    elif (i+w) in range(641,1280): #right-half region
-                        print('Move left')
-                        playsound('Move_left.mp3')
-                        time.sleep(3)  # delay for 3 secs
-                        notif_count += 1
-                        #engine.say('Move left')
-                elif notif_count > 0:
-                    print('Safe')
-                    playsound('Safe.mp3')
-                    #engine.say('Safe')
-                    print(box)
-                    notif_count = 0
-                    print(i+w)
-                #engine.runAndWait()
+                elif (i+w) in range(641,1280): #right-half region
+                    print('Move left')
+                    playsound('Move_left.mp3')
 
-        elif d[0] == 'person':
-            distance = distance_finder(focal_person, PERSON_WIDTH, d[1])
+            print(box)
+            print(i+w)
+
+
+        elif d[0] == 'stop sign':
+            distance = distance_finder(focal_sign, SIGN_WIDTH, d[1])
             x, y = d[2]
             if distance < 20:
-                if notif_count == 0:
-                    if (i+w) in range(0,640): #left-half region
-                        print('Move right')
-                        playsound('Move_right.mp3')
-                        time.sleep(3)  # delay for 3 secs
-                        notif_count += 1
-                        #engine.say('Move right')
-                        #blind_speak('Move right')
-                    elif (i+w) in range(641,1280): #right-half region
-                        print('Move left')
-                        playsound('Move_left.mp3')
-                        time.sleep(3)  # delay for 3 secs
-                        notif_count += 1
-                        #engine.say('Move left')
-                        #blind_speak('Move left')
-                elif notif_count > 0:
-                    print('Safe')
-                    playsound('Safe.mp3')
-                    time.sleep(3)  # delay for 3 secs
-                    #engine.say('Safe')
-                    #blind_speak('Safe')
-                    print(box)
-                    notif_count = 0
+                # if notif_count == 0:
+                if (i + w) in range(0, 640):  # left-half region
+                    print('Move right')
+                    playsound('Move_right.mp3')
+
+                elif (i + w) in range(641, 1280):  # right-half region
+                    print('Move left')
+                    playsound('Move_left.mp3')
+            print(box)
             print(i+w)
-        #engine.runAndWait()
+
 
         cv2.rectangle(frame, (x, y - 3), (x + 150, y + 23), BLACK, -1)
         cv2.putText(frame, f'Dis: {round(distance, 2)} inch', (x + 5, y + 13), FONTS, 0.48, GREEN, 2)
-    #engine.runAndWait()
+
 
     cv2.imshow('frame', frame)
     key = cv2.waitKey(1)
