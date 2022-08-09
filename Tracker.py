@@ -4,13 +4,16 @@ from playsound import playsound
 
 
 # Distance constants
-KNOWN_DISTANCE = 45  # INCHES
-PERSON_WIDTH = 16  # INCHES
-MOBILE_WIDTH = 3.0  # INCHES
+KNOWN_DISTANCE_S = 39 # INCHES
+KNOWN_DISTANCE_T = 88
+KNOWN_DISTANCE_W = 99
 
-
-KNOWN_DISTANCE_S = 5
 SIGN_WIDTH = 23.5
+TREE_WIDTH = 66  # INCHES
+WIRES_WIDTH = 88  # INCHES
+
+
+
 
 # Object detector constant
 CONFIDENCE_THRESHOLD = 0.5
@@ -23,21 +26,21 @@ BLACK = (0, 0, 0)
 # defining fonts
 FONTS = cv2.FONT_HERSHEY_COMPLEX
 
-class_names = [] #type straight up
-classFile = 'coco.names'
+# getting class names from classes.txt file
+#yolo
+class_names = []
+with open("obj.names", "r") as f:
+    class_names = [cname.strip() for cname in f.readlines()]
+#  setttng up opencv net
+yoloNet = cv2.dnn.readNet('yolov4-tiny-custom_best.weights', 'yolov4-tiny-custom.cfg')
 
-with open(classFile, 'rt') as f:
-    class_names = f.read().rstrip('\n').split('\n')
+#yoloNet.setPreferableBackend(cv.dnn.DNN_BACKEND_CUDA)
+#yoloNet.setPreferableTarget(cv.dnn.DNN_TARGET_CUDA_FP16)
 
-configPath = 'ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt'
-weightsPath = 'frozen_inference_graph.pb'
+net = cv2.dnn_DetectionModel(yoloNet)
+net.setInputParams(size=(416, 416), scale=1/255, swapRB=True)
 
-#net
-net = cv2.dnn_DetectionModel(weightsPath, configPath)
-net.setInputSize(320,320)
-net.setInputScale(1.0/127.5)
-net.setInputMean((127.5,127.5,127.5))
-net.setInputSwapRB(True)
+
 
 
 
@@ -67,24 +70,24 @@ def object_detector(image):
 
         # getting the data
         # 1: class name  2: object width in pixels, 3: position where have to draw text(distance)
-        if classid == 13:  # stop sign class id
-            # x, y, w, h = box[0], box[1], box[2], box[3]
-            data_list.append(["stop sign", box[2], (box[0], box[1] - 2)])
+        if classid == 0:  # stop sign class id
+            data_list.append(["sign", box[2], (box[0], box[1] - 2)])
 
             cv2.rectangle(image, box, color, 2)
             cv2.putText(image, label, (box[0], box[1] - 14), FONTS, 0.5, color, 2)
 
-        elif classid == 77:
-            data_list.append(["cell phone", box[2], (box[0], box[1] - 2)])
+        if classid == 1:
+            data_list.append(["tree", box[2], (box[0], box[1] - 2)])
 
             cv2.rectangle(image, box, color, 2)
             cv2.putText(image, label, (box[0], box[1] - 14), FONTS, 0.5, color, 2)
 
-        elif classid == 1:
-            data_list.append(["person", box[2], (box[0], box[1] - 2)])
+        elif classid == 2:
+            data_list.append(["wires", box[2], (box[0], box[1] - 2)])
 
             cv2.rectangle(image, box, color, 2)
             cv2.putText(image, label, (box[0], box[1] - 14), FONTS, 0.5, color, 2)
+
 
         # if you want to include more classes then you have to simply add more [elif] statements here
         # returning list containing the object data.
@@ -118,9 +121,9 @@ cap = cv2.VideoCapture(0)
 
 
 # reading the reference image from dir
-ref_sign = cv2.imread('stop_sign.jpeg')
-ref_mobile = cv2.imread('image4.png')
-ref_person = cv2.imread('image14.png')
+ref_sign = cv2.imread('IMG_7142.jpg')
+ref_tree = cv2.imread('tree.jpg')
+ref_wires = cv2.imread('wires_1.jpg')
 
 
 
@@ -129,11 +132,11 @@ sign_data = object_detector(ref_sign)
 sign_width_in_rf = sign_data[0][1]
 
 
-mobile_data = object_detector(ref_mobile)
-mobile_width_in_rf = mobile_data[1][1]
+tree_data = object_detector(ref_tree)
+tree_width_in_rf = tree_data[0][1]
 
-person_data = object_detector(ref_person)
-person_width_in_rf = person_data[0][1]
+wires_data = object_detector(ref_wires)
+wires_width_in_rf = wires_data[0][1]
 
 
 
@@ -144,9 +147,9 @@ person_width_in_rf = person_data[0][1]
 
 
 # finding focal length
-focal_person = focal_length_finder(KNOWN_DISTANCE, PERSON_WIDTH, person_width_in_rf)
+focal_tree = focal_length_finder(KNOWN_DISTANCE_T, TREE_WIDTH, tree_width_in_rf)
 
-focal_mobile = focal_length_finder(KNOWN_DISTANCE, MOBILE_WIDTH, mobile_width_in_rf)
+focal_wires = focal_length_finder(KNOWN_DISTANCE_W, WIRES_WIDTH, wires_width_in_rf)
 
 focal_sign = focal_length_finder(KNOWN_DISTANCE_S, SIGN_WIDTH, sign_width_in_rf)
 
@@ -163,18 +166,11 @@ while True:
 
 
 
-    #tracker.init(frame, box)
-    #success, box = tracker.update(frame)
-
-    #data = object_detector(frame)
-
-
-
     if len(data) > 0:
         for d in data:
             objectName = d[0]
 
-            if objectName == 'stop sign':
+            if objectName == 'sign':
                 x, y = d[2]  # position where to draw text, dist
                 distance = distance_finder(focal_sign, SIGN_WIDTH, d[1])
 
@@ -182,7 +178,7 @@ while True:
                 cv2.putText(frame, f'Dis: {round(distance, 2)} inch', (x + 5, y + 13), FONTS, 0.48, GREEN, 2)
 
                 #img capped from webcam dimensions: (720, 1280, 3)
-                if distance < 20:
+                if distance < 300:
                     #if success:
                         #if notif_count == 0:
                     if (i+w) in range(0,640): #left-half region
@@ -197,15 +193,15 @@ while True:
                         #time.sleep(w_time)  # delay for 3 secs
                         notif_count += 1
 
-            elif objectName == 'person':
+            elif objectName == 'tree':
                 x, y = d[2]  # position where to draw text, dist
-                distance = distance_finder(focal_person, PERSON_WIDTH, d[1])
+                distance = distance_finder(focal_tree, TREE_WIDTH, d[1])
 
                 cv2.rectangle(frame, (x, y - 3), (x + 150, y + 23), BLACK, -1)
                 cv2.putText(frame, f'Dis: {round(distance, 2)} inch', (x + 5, y + 13), FONTS, 0.48, GREEN, 2)
 
                 #img capped from webcam dimensions: (720, 1280, 3)
-                if distance < 20:
+                if distance < 300:
                     #if success:
                         #if notif_count == 0:
                     if (i+w) in range(0,640): #left-half region
@@ -220,16 +216,15 @@ while True:
                         #time.sleep(w_time)  # delay for 3 secs
                         notif_count += 1
 
-
-            elif objectName == 'cell phone':
+            elif objectName == 'wires':
                 x, y = d[2]  # position where to draw text, dist
-                distance = distance_finder(focal_mobile, MOBILE_WIDTH, d[1])
+                distance = distance_finder(focal_wires, WIRES_WIDTH, d[1])
 
                 cv2.rectangle(frame, (x, y - 3), (x + 150, y + 23), BLACK, -1)
                 cv2.putText(frame, f'Dis: {round(distance, 2)} inch', (x + 5, y + 13), FONTS, 0.48, GREEN, 2)
 
                 #img capped from webcam dimensions: (720, 1280, 3)
-                if distance < 20:
+                if distance < 300:
                     #if success:
                         #if notif_count == 0:
                     if (i+w) in range(0,640): #left-half region
@@ -243,6 +238,7 @@ while True:
                         playsound('Move_left.mp3')
                         #time.sleep(w_time)  # delay for 3 secs
                         notif_count += 1
+
 
     else:
         if notif_count > 0:
