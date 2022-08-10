@@ -59,7 +59,7 @@ def object_detector(image):
         # define color of each, object based on its class id
         color = COLORS[int(classid) % len(COLORS)]
 
-        label = "%s : %f" % (class_names[classid - 1], score)
+        label = "%s : %f" % (class_names[classid], score)
 
         # draw rectangle on and label on object
         #cv2.rectangle(image, box, color, 2)
@@ -70,19 +70,19 @@ def object_detector(image):
 
         # getting the data
         # 1: class name  2: object width in pixels, 3: position where have to draw text(distance)
-        if classid == 0:  # stop sign class id
+        if classid == 1:  # stop sign class id
             data_list.append(["sign", box[2], (box[0], box[1] - 2)])
 
             cv2.rectangle(image, box, color, 2)
             cv2.putText(image, label, (box[0], box[1] - 14), FONTS, 0.5, color, 2)
 
-        if classid == 1:
+        if classid == 2:
             data_list.append(["tree", box[2], (box[0], box[1] - 2)])
 
             cv2.rectangle(image, box, color, 2)
             cv2.putText(image, label, (box[0], box[1] - 14), FONTS, 0.5, color, 2)
 
-        elif classid == 2:
+        elif classid == 3:
             data_list.append(["wires", box[2], (box[0], box[1] - 2)])
 
             cv2.rectangle(image, box, color, 2)
@@ -169,7 +169,6 @@ while True:
     if len(data) > 0:
         for d in data:
             objectName = d[0]
-
             if objectName == 'sign':
                 x, y = d[2]  # position where to draw text, dist
                 distance = distance_finder(focal_sign, SIGN_WIDTH, d[1])
@@ -193,6 +192,7 @@ while True:
                         #time.sleep(w_time)  # delay for 3 secs
                         notif_count += 1
 
+
             elif objectName == 'tree':
                 x, y = d[2]  # position where to draw text, dist
                 distance = distance_finder(focal_tree, TREE_WIDTH, d[1])
@@ -215,30 +215,28 @@ while True:
                         playsound('Move_left.mp3')
                         #time.sleep(w_time)  # delay for 3 secs
                         notif_count += 1
-
-            elif objectName == 'wires':
+            elif objectName == 'tree':
                 x, y = d[2]  # position where to draw text, dist
-                distance = distance_finder(focal_wires, WIRES_WIDTH, d[1])
+                distance = distance_finder(focal_tree, TREE_WIDTH, d[1])
 
                 cv2.rectangle(frame, (x, y - 3), (x + 150, y + 23), BLACK, -1)
                 cv2.putText(frame, f'Dis: {round(distance, 2)} inch', (x + 5, y + 13), FONTS, 0.48, GREEN, 2)
 
-                #img capped from webcam dimensions: (720, 1280, 3)
+                # img capped from webcam dimensions: (720, 1280, 3)
                 if distance < 300:
-                    #if success:
-                        #if notif_count == 0:
-                    if (i+w) in range(0,640): #left-half region
+                    # if success:
+                    # if notif_count == 0:
+                    if (i + w) in range(0, 640):  # left-half region
                         print('Move right')
                         playsound('Move_right.mp3')
-                        #time.sleep(w_time)  # delay for 3 secs
+                        # time.sleep(w_time)  # delay for 3 secs
                         notif_count += 1
 
-                    elif (i+w) in range(641,1280): #right-half region
+                    elif (i + w) in range(641, 1280):  # right-half region
                         print('Move left')
                         playsound('Move_left.mp3')
-                        #time.sleep(w_time)  # delay for 3 secs
+                        # time.sleep(w_time)  # delay for 3 secs
                         notif_count += 1
-
 
     else:
         if notif_count > 0:
