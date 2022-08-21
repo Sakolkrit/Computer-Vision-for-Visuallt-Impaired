@@ -4,13 +4,13 @@ from playsound import playsound
 
 
 # Distance constants
-KNOWN_DISTANCE_S = 39 # INCHES
-KNOWN_DISTANCE_T = 88
-KNOWN_DISTANCE_W = 99
+KNOWN_DISTANCE_S = 0.99 # meters
+KNOWN_DISTANCE_T = 2.24
+KNOWN_DISTANCE_W = 2.51
 
-SIGN_WIDTH = 23.5
-TREE_WIDTH = 66  # INCHES
-WIRES_WIDTH = 88  # INCHES
+SIGN_WIDTH = 0.60
+TREE_WIDTH = 1.68
+WIRES_WIDTH = 2.24
 
 
 
@@ -169,15 +169,16 @@ while True:
     if len(data) > 0:
         for d in data:
             objectName = d[0]
+
             if objectName == 'sign':
                 x, y = d[2]  # position where to draw text, dist
                 distance = distance_finder(focal_sign, SIGN_WIDTH, d[1])
 
                 cv2.rectangle(frame, (x, y - 3), (x + 150, y + 23), BLACK, -1)
-                cv2.putText(frame, f'Dis: {round(distance, 2)} inch', (x + 5, y + 13), FONTS, 0.48, GREEN, 2)
+                cv2.putText(frame, f'Dis: {round(distance, 2)} m', (x + 5, y + 13), FONTS, 0.48, GREEN, 2)
 
                 #img capped from webcam dimensions: (720, 1280, 3)
-                if distance < 300:
+                if distance < 10:
                     #if success:
                         #if notif_count == 0:
                     if (i+w) in range(0,640): #left-half region
@@ -192,16 +193,15 @@ while True:
                         #time.sleep(w_time)  # delay for 3 secs
                         notif_count += 1
 
-
-            elif objectName == 'tree':
+            if objectName == 'tree':
                 x, y = d[2]  # position where to draw text, dist
                 distance = distance_finder(focal_tree, TREE_WIDTH, d[1])
 
                 cv2.rectangle(frame, (x, y - 3), (x + 150, y + 23), BLACK, -1)
-                cv2.putText(frame, f'Dis: {round(distance, 2)} inch', (x + 5, y + 13), FONTS, 0.48, GREEN, 2)
+                cv2.putText(frame, f'Dis: {round(distance, 2)} m', (x + 5, y + 13), FONTS, 0.48, GREEN, 2)
 
                 #img capped from webcam dimensions: (720, 1280, 3)
-                if distance < 300:
+                if distance < 10:
                     #if success:
                         #if notif_count == 0:
                     if (i+w) in range(0,640): #left-half region
@@ -215,15 +215,15 @@ while True:
                         playsound('Move_left.mp3')
                         #time.sleep(w_time)  # delay for 3 secs
                         notif_count += 1
-            elif objectName == 'tree':
+            elif objectName == 'wires':
                 x, y = d[2]  # position where to draw text, dist
-                distance = distance_finder(focal_tree, TREE_WIDTH, d[1])
+                distance = distance_finder(focal_wires, WIRES_WIDTH, d[1])
 
                 cv2.rectangle(frame, (x, y - 3), (x + 150, y + 23), BLACK, -1)
-                cv2.putText(frame, f'Dis: {round(distance, 2)} inch', (x + 5, y + 13), FONTS, 0.48, GREEN, 2)
+                cv2.putText(frame, f'Dis: {round(distance, 2)} m', (x + 5, y + 13), FONTS, 0.48, GREEN, 2)
 
                 # img capped from webcam dimensions: (720, 1280, 3)
-                if distance < 300:
+                if distance < 10:
                     # if success:
                     # if notif_count == 0:
                     if (i + w) in range(0, 640):  # left-half region
