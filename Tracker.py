@@ -1,6 +1,10 @@
 import cv2
 from playsound import playsound
 
+#-----multi thread testing
+import multiprocessing
+import time
+import os
 
 
 # Distance constants
@@ -158,7 +162,12 @@ focal_sign = focal_length_finder(KNOWN_DISTANCE_S, SIGN_WIDTH, sign_width_in_rf)
 
 
 notif_count = 0
+consecutive_safe_counter = 0
 #tracker.init(frame, box)
+
+def sound_player(filename = ""):
+    os.system('afplay '+filename+'.wav &')
+
 
 while True:
     ret, frame = cap.read()
@@ -167,6 +176,7 @@ while True:
 
 
     if len(data) > 0:
+        consecutive_safe_counter = 0
         for d in data:
             objectName = d[0]
 
@@ -178,18 +188,29 @@ while True:
                 cv2.putText(frame, f'Dis: {round(distance, 2)} m', (x + 5, y + 13), FONTS, 0.48, GREEN, 2)
 
                 #img capped from webcam dimensions: (720, 1280, 3)
-                if distance < 10:
+                if distance < 15:
                     #if success:
                         #if notif_count == 0:
                     if (i+w) in range(0,640): #left-half region
-                        print('Move right')
-                        playsound('Move_right.mp3')
+                        # print('Move right')
+                        # playsound('Move_right.mp3', False)
+                        # ------ new way to play sound
+                        print('Beware your left')
+                        if notif_count%30 == 0:
+                            sound_player("ระวังซ้าย")
+                        # ------end  new way to play sound
                         #time.sleep(w_time)  # delay for 3 secs
                         notif_count += 1
 
                     elif (i+w) in range(641,1280): #right-half region
-                        print('Move left')
-                        playsound('Move_left.mp3')
+                        # print('Move left')
+                        # playsound('Move_left.mp3', False)
+                        # ------ new way to play sound
+                        print('Beware your right')
+                        if notif_count%30 == 0:
+                            notif_count = 0
+                            sound_player("ระวังขวา")
+                        # ------end  new way to play sound
                         #time.sleep(w_time)  # delay for 3 secs
                         notif_count += 1
 
@@ -201,18 +222,32 @@ while True:
                 cv2.putText(frame, f'Dis: {round(distance, 2)} m', (x + 5, y + 13), FONTS, 0.48, GREEN, 2)
 
                 #img capped from webcam dimensions: (720, 1280, 3)
-                if distance < 10:
+                if distance < 15:
                     #if success:
                         #if notif_count == 0:
                     if (i+w) in range(0,640): #left-half region
-                        print('Move right')
-                        playsound('Move_right.mp3')
+                        # print('Move right')
+                        # playsound('Move_left.mp3', False)
+                        # ------ new way to play sound
+                        print('Beware your left')
+                        if notif_count%30 == 0:
+                            notif_count = 0
+                            sound_player("ระวังซ้าย")
+                        # ------end  new way to play sound
                         #time.sleep(w_time)  # delay for 3 secs
                         notif_count += 1
 
                     elif (i+w) in range(641,1280): #right-half region
-                        print('Move left')
-                        playsound('Move_left.mp3')
+                        # print('Move left')
+                        # playsound('Move_left.mp3')
+
+                        # ------ new way to play sound
+                        print('Beware your right')
+                        if notif_count%30 == 0:
+                            notif_count = 0
+                            sound_player("ระวังขวา")
+                        # ------end  new way to play sound
+
                         #time.sleep(w_time)  # delay for 3 secs
                         notif_count += 1
             elif objectName == 'wires':
@@ -223,29 +258,51 @@ while True:
                 cv2.putText(frame, f'Dis: {round(distance, 2)} m', (x + 5, y + 13), FONTS, 0.48, GREEN, 2)
 
                 # img capped from webcam dimensions: (720, 1280, 3)
-                if distance < 10:
+                if distance < 15:
                     # if success:
                     # if notif_count == 0:
                     if (i + w) in range(0, 640):  # left-half region
-                        print('Move right')
-                        playsound('Move_right.mp3')
+                        # print('Move right')
+                        # playsound('Move_right.mp3')
+                        # ------ new way to play sound
+                        print('Beware your left')
+                        if notif_count%30 == 0:
+                            notif_count = 0
+                            sound_player("ระวังซ้าย")
+                        # ------end  new way to play sound
+
                         # time.sleep(w_time)  # delay for 3 secs
                         notif_count += 1
 
                     elif (i + w) in range(641, 1280):  # right-half region
-                        print('Move left')
-                        playsound('Move_left.mp3')
+                        # print('Move left')
+                        # playsound('Move_left.mp3')
+
+                        # ------ new way to play sound
+                        print('Beware your right')
+                        if notif_count%30 == 0:
+                            notif_count = 0
+                            sound_player("ระวังขวา")
+                        # ------end  new way to play sound
+
                         # time.sleep(w_time)  # delay for 3 secs
                         notif_count += 1
 
     else:
+        consecutive_safe_counter += 1# ----- new adding
         if notif_count > 0:
-            # play safe sound
-            print('Safe')
-            playsound('Safe.mp3')
-            print(box)
-            notif_count = 0
-            print(i + w)
+            if consecutive_safe_counter >= 10:# ----- new adding
+                consecutive_safe_counter = 0# ----- new adding
+                # play safe sound
+                # print('Safe')
+                # playsound('Safe.mp3')
+                # ------ new way to play sound
+                print('Safe')
+                sound_player("ปลอดภัย")
+                # ------end  new way to play sound
+                print(box)
+                notif_count = 0
+                print(i + w)
 
 
 
