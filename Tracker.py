@@ -1,10 +1,25 @@
 import cv2
+import numpy as np
 from playsound import playsound
 
 #-----multi thread testing
 import multiprocessing
 import time
 import os
+
+#add
+#cap = cv2.VideoCapture('salaya.mp4')
+
+
+#  setttng up opencv net
+net = cv2.dnn.readNetFromONNX("yolov5n.onnx")
+
+# getting class names from classes.txt file
+#yolo
+class_names = []
+with open("obj.names", "r") as f:
+    class_names = [cname.strip() for cname in f.readlines()]
+
 
 
 # Distance constants
@@ -30,19 +45,14 @@ BLACK = (0, 0, 0)
 # defining fonts
 FONTS = cv2.FONT_HERSHEY_COMPLEX
 
-# getting class names from classes.txt file
-#yolo
-class_names = []
-with open("obj.names", "r") as f:
-    class_names = [cname.strip() for cname in f.readlines()]
-#  setttng up opencv net
-yoloNet = cv2.dnn.readNet('yolov4-tiny-custom_best.weights', 'yolov4-tiny-custom.cfg')
+
 
 #yoloNet.setPreferableBackend(cv.dnn.DNN_BACKEND_CUDA)
 #yoloNet.setPreferableTarget(cv.dnn.DNN_TARGET_CUDA_FP16)
 
-net = cv2.dnn_DetectionModel(yoloNet)
-net.setInputParams(size=(416, 416), scale=1/255, swapRB=True)
+#old
+#net = cv2.dnn_DetectionModel(yoloNet)
+#net.setInputParams(size=(416, 416), scale=1/255, swapRB=True)
 
 
 
@@ -50,6 +60,10 @@ net.setInputParams(size=(416, 416), scale=1/255, swapRB=True)
 
 # object detector funciton /method
 def object_detector(image):
+    #add
+    blob = cv2.dnn.blobFromImage(image, scalefactor=1 / 255, size=(416, 416), mean=[0, 0, 0], swapRB=True, crop=False)
+    net.setInput(blob)
+    #outputs = net.forward(net.getUnconnectedOutLayersNames())
     classes, scores, boxes = net.detect(image, CONFIDENCE_THRESHOLD, NMS_THRESHOLD)
     # creating empty list to add objects data
     data_list = []
@@ -113,7 +127,6 @@ def distance_finder(focal_length, real_object_width, width_in_frmae):
     global distance
     distance = (real_object_width * focal_length) / width_in_frmae
     return distance
-
 
 
 
@@ -318,9 +331,6 @@ while True:
 
         print(box)
         print(i+w)
-
-
-
 
     cv2.imshow('frame', frame)
     key = cv2.waitKey(1)
