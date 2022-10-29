@@ -13,6 +13,8 @@ import os
 
 #  setttng up opencv net
 net = cv2.dnn.readNetFromONNX("yolov5n.onnx")
+net = cv2.dnn_DetectionModel(net)
+net.setInputParams(size=(640,640), scale=1/255, swapRB=True)
 
 # getting class names from classes.txt file
 #yolo
