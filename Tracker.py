@@ -197,8 +197,10 @@ ref_sign = cv2.imread('IMG_7142.jpg')
 
 
 sign_data = object_detector(ref_sign)
-print(sign_data)
-sign_width_in_rf = sign_data[0][1] #[0] first thing in the ref photo obj detector sees
+#print(sign_data[0])
+#[0] first thing in the ref photo obj detector sees
+#[1] is box 2 (width of box on screen to compare with width in real world
+sign_width_in_rf = sign_data[0][1]
 
 
 #tree_data = object_detector(ref_tree)
