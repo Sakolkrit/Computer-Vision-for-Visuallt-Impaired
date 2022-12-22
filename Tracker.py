@@ -50,14 +50,16 @@ net.setInputParams(size=(416, 416), scale=1/255, swapRB=True)
 
 # object detector funciton /method
 def object_detector(image):
+    
     classes, scores, boxes = net.detect(image, CONFIDENCE_THRESHOLD, NMS_THRESHOLD)
     # creating empty list to add objects data
     data_list = []
 
     global box
     global i,j,w,h
-
+    
     for (classid, score, box) in zip(classes, scores, boxes):
+        #print(classid, score)
         i, j, w, h = box
 
         # define color of each, object based on its class id
@@ -104,7 +106,7 @@ def object_detector(image):
 def focal_length_finder(measured_distance, real_width, width_in_rf):
     focal_length = (width_in_rf * measured_distance) / real_width
 
-    return focal_length
+    return focal_length / IMG_7142
 
 
 
@@ -118,7 +120,7 @@ def distance_finder(focal_length, real_object_width, width_in_frmae):
 
 
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(-1)
 
 
 
@@ -126,8 +128,8 @@ cap = cv2.VideoCapture(0)
 
 # reading the reference image from dir
 ref_sign = cv2.imread('IMG_7142.jpg')
-ref_tree = cv2.imread('tree.jpg')
-ref_wires = cv2.imread('wires_1.jpg')
+ref_tree = cv2.imread('tree.JPG')
+ref_wires = cv2.imread('wires_1.JPG')
 
 
 
@@ -166,7 +168,12 @@ consecutive_safe_counter = 0
 #tracker.init(frame, box)
 
 def sound_player(filename = ""):
-    os.system('afplay '+filename+'.wav &')
+    # os.system('afplay /home/pi/Computer-Vision-for-Visuallt-Impaired/'+filename+'.mp3 &')
+    sound_root = "/home/pi/Computer-Vision-for-Visuallt-Impaired"
+    fname = "{}.wav".format(filename)
+    fpath = os.path.join(sound_root, fname)
+    playsound(fpath)
+
 
 
 while True:
@@ -191,25 +198,26 @@ while True:
                 if distance < 15:
                     #if success:
                         #if notif_count == 0:
-                    if (i+w) in range(0,640): #left-half region
+                    print("i: {}, w: {}, (i+w)*2: {}".format(i, w, (i+w)*2))
+                    if (i+w)*2 in range(0,640): #left-half region
                         # print('Move right')
                         # playsound('Move_right.mp3', False)
                         # ------ new way to play sound
                         print('Beware your left')
                         if notif_count%30 == 0:
-                            sound_player("ระวังซ้าย")
+                            sound_player("move_left")
                         # ------end  new way to play sound
                         #time.sleep(w_time)  # delay for 3 secs
                         notif_count += 1
 
-                    elif (i+w) in range(641,1280): #right-half region
+                    elif (i+w)*2 in range(641,1280): #right-half region
                         # print('Move left')
                         # playsound('Move_left.mp3', False)
                         # ------ new way to play sound
                         print('Beware your right')
                         if notif_count%30 == 0:
                             notif_count = 0
-                            sound_player("ระวังขวา")
+                            sound_player("move_right")
                         # ------end  new way to play sound
                         #time.sleep(w_time)  # delay for 3 secs
                         notif_count += 1
@@ -232,7 +240,7 @@ while True:
                         print('Beware your left')
                         if notif_count%30 == 0:
                             notif_count = 0
-                            sound_player("ระวังซ้าย")
+                            sound_player("move_left")
                         # ------end  new way to play sound
                         #time.sleep(w_time)  # delay for 3 secs
                         notif_count += 1
@@ -245,7 +253,7 @@ while True:
                         print('Beware your right')
                         if notif_count%30 == 0:
                             notif_count = 0
-                            sound_player("ระวังขวา")
+                            sound_player("move_right")
                         # ------end  new way to play sound
 
                         #time.sleep(w_time)  # delay for 3 secs
@@ -268,7 +276,7 @@ while True:
                         print('Beware your left')
                         if notif_count%30 == 0:
                             notif_count = 0
-                            sound_player("ระวังซ้าย")
+                            sound_player("move_left")
                         # ------end  new way to play sound
 
                         # time.sleep(w_time)  # delay for 3 secs
@@ -282,7 +290,7 @@ while True:
                         print('Beware your right')
                         if notif_count%30 == 0:
                             notif_count = 0
-                            sound_player("ระวังขวา")
+                            sound_player("move_right")
                         # ------end  new way to play sound
 
                         # time.sleep(w_time)  # delay for 3 secs
@@ -298,11 +306,11 @@ while True:
                 # playsound('Safe.mp3')
                 # ------ new way to play sound
                 print('Safe')
-                sound_player("ปลอดภัย")
+                sound_player("safe")
                 # ------end  new way to play sound
-                print(box)
+                # print(box)
                 notif_count = 0
-                print(i + w)
+                # print(i + w)
 
 
 
